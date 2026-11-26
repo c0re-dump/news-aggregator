@@ -1,0 +1,55 @@
+# YouTube channels to follow.
+# `id` is the channel ID (starts with "UC"). Find it with:
+#   uv run news-app resolve @SomeHandle
+# Set `enabled = false` to keep a channel in the list but skip it.
+# All channels below were checked on 2026-11-25 and upload actively.
+
+[[channel]]
+name = "Здравей, България (NOVA)"
+handle = "@Zdravei_Bulgaria"
+id = "UCyZmvViq01D4S14hYgbNkiA"
+
+[[channel]]
+name = "bTV Media Group"
+handle = "@bTVMediaGroup"
+id = "UCgGUFNM1VuzCSZlcJCTBZpA"
+
+[[channel]]
+name = "Bulgaria ON AIR"
+handle = "@BulgariaONAIR"
+id = "UCbWF7ElHb7wbZkEs2mDvoaw"
+
+[[channel]]
+name = "Euronews Bulgaria"
+handle = "@EuronewsBulgaria"
+id = "UCU1i6qBMjY9El6q5L2OK8hA"
+
+[[channel]]
+name = "Bloomberg TV Bulgaria"
+handle = "@BloombergTVBulgaria"
+id = "UCTJe8dA3UVlPV96m31A6EmA"
+
+[[channel]]
+name = "Евроком"
+handle = "@eurocomtv"
+id = "UCYRY_SSdXPpeV8oxI96Q51w"
+
+[[channel]]
+name = "TV1 Bulgaria"
+handle = "@TV1Bulgaria"
+id = "UCV-JNw2dFvDNUPQUVVjoHRw"
+
+[[channel]]
+name = "Дарик (Darik Plus)"
+handle = "@darikplus"
+id = "UC6wklqaP14zYZ_zbS5QDKmA"
+
+# BNT uploads its morning show as one 2.5-hour video.
+# `include` keeps only that show; `segment` splits it into timed parts
+# (subtitles via yt-dlp, split by Claude; see src/news_app/segmenter.py).
+[[channel]]
+name = "БНТ · Денят започва"
+handle = "@BNT1"
+id = "UC8jnuRbBzMICRHsC0qqVd9Q"
+include = "Денят започва"
+segment = true

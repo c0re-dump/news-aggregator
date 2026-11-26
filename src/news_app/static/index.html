@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Новини по теми</title>
+<style>
+  :root {
+    --bg: #f6f5f2; --panel: #ffffff; --text: #1d1d1b; --muted: #6b6a66; --line: #e3e1dc;
+    --accent: #0f6b5c; --accent-soft: #dcefeb; --chip: #eeece7; --shadow: 0 1px 2px rgba(0,0,0,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141513; --panel: #1d1f1c; --text: #ecebe7; --muted: #a09f99; --line: #2e302c;
+      --accent: #5cc5ae; --accent-soft: #1f3833; --chip: #262824; --shadow: none;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { position: sticky; top: 0; z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line); }
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 0 16px; }
+  .top { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 14px 0 10px; }
+  h1 { font-size: 19px; margin: 0 8px 0 0; letter-spacing: -.01em; }
+  .seg { display: inline-flex; background: var(--chip); border-radius: 9px; padding: 3px; }
+  .seg button { border: 0; background: transparent; color: var(--muted); padding: 6px 12px; border-radius: 7px;
+                font: inherit; cursor: pointer; }
+  .seg button.on { background: var(--panel); color: var(--text); box-shadow: var(--shadow); font-weight: 600; }
+  input[type=search], select { font: inherit; color: var(--text); background: var(--panel);
+         border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; }
+  input[type=search] { flex: 1 1 220px; min-width: 0; }
+  .spacer { flex: 1; }
+  .status { color: var(--muted); font-size: 13px; }
+  .btn { font: inherit; border: 1px solid var(--line); background: var(--panel); color: var(--text);
+         border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding-bottom: 10px; }
+  .chip { border: 1px solid transparent; background: var(--chip); color: var(--text); border-radius: 999px;
+          padding: 4px 11px; font: inherit; font-size: 14px; cursor: pointer; white-space: nowrap; }
+  .chip .n { color: var(--muted); margin-left: 4px; font-variant-numeric: tabular-nums; }
+  .chip.on { background: var(--accent); color: #fff; }
+  .chip.on .n { color: rgba(255,255,255,.8); }
+  .chip:disabled { opacity: .4; cursor: default; }
+  .topics { overflow-x: auto; flex-wrap: nowrap; scrollbar-width: thin; }
+  .topics .chip { background: transparent; border-color: var(--line); font-size: 13px; }
+  .topics .chip.on { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+  .label { color: var(--muted); font-size: 13px; margin-right: 2px; }
+  main { padding: 18px 0 60px; }
+  section { margin-bottom: 30px; }
+  section h2 { font-size: 16px; margin: 0 0 10px; display: flex; gap: 8px; align-items: baseline; }
+  section h2 .n { color: var(--muted); font-weight: 400; font-size: 14px; }
+  section h2 button { margin-left: auto; font-size: 13px; color: var(--accent); background: none; border: 0; cursor: pointer; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; overflow: hidden;
+          display: flex; flex-direction: column; box-shadow: var(--shadow); }
+  .thumb { position: relative; display: block; aspect-ratio: 16/9; background: var(--chip); }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .dur { position: absolute; right: 6px; bottom: 6px; background: rgba(0,0,0,.78); color: #fff; font-size: 12px;
+         padding: 1px 6px; border-radius: 4px; font-variant-numeric: tabular-nums; }
+  .body { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .title { color: var(--text); text-decoration: none; font-weight: 600; font-size: 14.5px;
+           display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .title:hover { color: var(--accent); }
+  .meta { color: var(--muted); font-size: 12.5px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: auto; padding-top: 4px; }
+  .tag { font-size: 12px; border-radius: 5px; padding: 1px 7px; background: var(--chip); color: var(--muted);
+         border: 0; cursor: pointer; font-family: inherit; }
+  .tag.fmt { background: var(--accent-soft); color: var(--accent); cursor: default; }
+  .empty { color: var(--muted); padding: 40px 0; text-align: center; }
+  .guests { font-size: 12.5px; color: var(--text); opacity: .85; }
+  .seg-badge { position: absolute; left: 6px; top: 6px; background: var(--accent); color: #fff; font-size: 11.5px;
+               padding: 1px 7px; border-radius: 4px; font-weight: 600; }
+  dialog#player { border: 0; padding: 0; border-radius: 14px;
+                  width: min(980px, calc(100vw - 32px), calc((100vh - 280px) * 16 / 9)); min-width: min(420px, calc(100vw - 32px));
+                  max-height: calc(100vh - 32px); background: var(--panel); color: var(--text); }
+  dialog#player::backdrop { background: rgba(0,0,0,.6); }
+  .pl-video { aspect-ratio: 16/9; background: #000; }
+  .pl-video iframe { width: 100%; height: 100%; border: 0; display: block; }
+  .pl-body { padding: 14px 18px 18px; display: flex; flex-direction: column; gap: 8px; }
+  .pl-head { display: flex; gap: 12px; align-items: flex-start; }
+  .pl-head h3 { margin: 0; font-size: 17px; flex: 1; }
+  .pl-close { border: 0; background: var(--chip); color: var(--text); border-radius: 8px; width: 32px; height: 32px;
+              font-size: 18px; cursor: pointer; flex: none; }
+  .pl-actions a { color: var(--accent); font-size: 14px; }
+  .pl-parts { margin-top: 6px; border-top: 1px solid var(--line); padding-top: 10px; }
+  .pl-parts h4 { margin: 0 0 6px; font-size: 14px; color: var(--muted); font-weight: 600; }
+  .pl-parts ol { list-style: none; margin: 0; padding: 0; max-height: 260px; overflow: auto; }
+  .pl-parts li button { display: flex; gap: 10px; width: 100%; text-align: left; border: 0; background: none;
+              color: var(--text); font: inherit; font-size: 14px; padding: 6px 8px; border-radius: 7px; cursor: pointer; }
+  .pl-parts li button:hover { background: var(--chip); }
+  .pl-parts li button.on { background: var(--accent-soft); color: var(--accent); }
+  .pl-parts .t { color: var(--muted); font-variant-numeric: tabular-nums; flex: none; width: 58px; }
+  .more { display: block; margin: 12px auto 0; }
+  @media (max-width: 600px) {
+    h1 { width: 100%; }
+    .grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="top">
+      <h1>Новини по теми</h1>
+      <div class="seg" id="span">
+        <button data-v="day">Днес</button><button data-v="week">Седмица</button><button data-v="month">Месец</button>
+      </div>
+      <input type="search" id="q" placeholder="Търси по заглавие, човек, тема…">
+      <span class="status" id="status"></span>
+      <button class="btn" id="refresh" title="Провери за нови видеа">Обнови</button>
+    </div>
+    <div class="row">
+      <select id="channel"><option value="">Всички канали</option></select>
+      <select id="format"><option value="">Всички формати</option></select>
+    </div>
+    <div class="row" id="cats"></div>
+    <div class="row topics" id="topics"></div>
+  </div>
+</header>
+<main class="wrap" id="out"></main>
+<dialog id="player">
+  <div class="pl-video" id="pl-video"></div>
+  <div class="pl-body">
+    <div class="pl-head"><h3 id="pl-title"></h3><button class="pl-close" id="pl-close" aria-label="Затвори">✕</button></div>
+    <div class="meta" id="pl-meta"></div>
+    <div class="guests" id="pl-guests"></div>
+    <div id="pl-summary"></div>
+    <div class="tags" id="pl-tags"></div>
+    <div class="pl-actions"><a id="pl-yt" target="_blank" rel="noopener">Отвори в YouTube ↗</a></div>
+    <div class="pl-parts" id="pl-parts" hidden><h4>Всички части на предаването</h4><ol id="pl-list"></ol></div>
+  </div>
+</dialog>
+
+<script>
+const S = { span: "day", category: "", channel: "", format: "", topic: "", q: "" };
+let META = null;
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+function readHash() {
+  const p = new URLSearchParams(location.hash.slice(1));
+  for (const k of Object.keys(S)) if (p.has(k)) S[k] = p.get(k);
+}
+function writeHash() {
+  const p = new URLSearchParams();
+  for (const [k, v] of Object.entries(S)) if (v && !(k === "span" && v === "day")) p.set(k, v);
+  history.replaceState(null, "", "#" + p.toString());
+}
+
+function ago(iso) {
+  const m = Math.round((Date.now() - new Date(iso)) / 60000);
+  if (m < 60) return `преди ${m} мин`;
+  const h = Math.round(m / 60);
+  if (h < 24) return `преди ${h} ч`;
+  return new Date(iso).toLocaleDateString("bg-BG", { day: "numeric", month: "short" });
+}
+function dur(s) {
+  if (!s) return "";
+  const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60;
+  return (h ? h + ":" + String(m).padStart(2, "0") : m) + ":" + String(x).padStart(2, "0");
+}
+
+const ITEMS = new Map();
+const itemKey = v => v.id + "@" + (v.start_s ?? "");
+const ytUrl = v => `https://www.youtube.com/watch?v=${v.id}` + (v.start_s ? `&t=${v.start_s}s` : "");
+const clock = s => { const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60;
+  return h + ":" + String(m).padStart(2, "0") + ":" + String(x).padStart(2, "0"); };
+
+function card(v) {
+  const fmt = META.formats[v.format];
+  const key = itemKey(v); ITEMS.set(key, v);
+  const seg = v.start_s != null;
+  return `<article class="card">
+    <a class="thumb" href="${esc(ytUrl(v))}" data-play="${esc(key)}">
+      ${v.thumbnail ? `<img loading="lazy" src="${esc(v.thumbnail)}" alt="">` : ""}
+      ${seg ? `<span class="seg-badge">от ${clock(v.start_s)}</span>` : ""}
+      ${v.duration_s ? `<span class="dur">${dur(v.duration_s)}</span>` : ""}
+    </a>
+    <div class="body">
+      <a class="title" href="${esc(ytUrl(v))}" data-play="${esc(key)}">${esc(v.title)}</a>
+      ${v.guests?.length ? `<div class="guests">${v.guests.map(esc).join(" · ")}</div>` : ""}
+      <div class="meta">${esc(v.channel_name)} · ${ago(v.published_at)}</div>
+      <div class="tags">
+        ${fmt ? `<span class="tag fmt">${esc(fmt)}</span>` : ""}
+        ${v.topics.map(t => `<button class="tag" data-topic="${esc(t)}">${esc(t)}</button>`).join("")}
+      </div>
+    </div>
+  </article>`;
+}
+
+const PER_SECTION = 8;
+function render(data) {
+  const cats = META.categories;
+  $("cats").innerHTML =
+    `<button class="chip ${S.category ? "" : "on"}" data-cat="">Всички<span class="n">${Object.values(data.counts).reduce((a, b) => a + b, 0)}</span></button>` +
+    Object.entries(cats).map(([k, label]) =>
+      `<button class="chip ${S.category === k ? "on" : ""}" data-cat="${k}" ${data.counts[k] ? "" : "disabled"}>${esc(label)}<span class="n">${data.counts[k] || 0}</span></button>`
+    ).join("") + (data.counts.pending ? `<span class="status">· ${data.counts.pending} чакат категория</span>` : "");
+
+  const topics = data.topics.slice();
+  if (S.topic && !topics.some(t => t.name === S.topic)) topics.unshift({ name: S.topic, count: data.videos.length });
+  $("topics").innerHTML = topics.length
+    ? `<span class="label">Теми:</span>` + topics.map(t =>
+        `<button class="chip ${S.topic === t.name ? "on" : ""}" data-topic="${esc(t.name)}">${esc(t.name)}<span class="n">${t.count}</span>${S.topic === t.name ? " ✕" : ""}</button>`).join("")
+    : "";
+
+  const st = data.status;
+  $("status").textContent = st.running ? "Обновява се…" : st.last_refresh ? "Обновено " + ago(st.last_refresh) : "";
+
+  if (!data.videos.length) {
+    $("out").innerHTML = `<p class="empty">${st.running || !st.last_refresh ? "Зареждам видеата от каналите…" : "Няма видеа за този период и филтри."}</p>`;
+    return;
+  }
+  if (S.category || S.topic || S.q) {
+    $("out").innerHTML = `<div class="grid">${data.videos.map(card).join("")}</div>`;
+    return;
+  }
+  const groups = {};
+  for (const v of data.videos) (groups[v.category || "pending"] ||= []).push(v);
+  const order = Object.keys(groups).sort((a, b) => groups[b].length - groups[a].length);
+  $("out").innerHTML = order.map(k => {
+    const list = groups[k];
+    return `<section>
+      <h2>${esc(cats[k] || "Без категория")}<span class="n">${list.length}</span>
+        ${list.length > PER_SECTION && k !== "pending" ? `<button data-cat="${k}">Виж всички →</button>` : ""}</h2>
+      <div class="grid">${list.slice(0, PER_SECTION).map(card).join("")}</div>
+    </section>`;
+  }).join("");
+}
+
+let pending = null;
+async function load() {
+  writeHash();
+  const p = new URLSearchParams();
+  for (const [k, v] of Object.entries(S)) if (v) p.set(k, v);
+  const ctl = new AbortController();
+  pending?.abort(); pending = ctl;
+  try {
+    const r = await fetch("/api/videos?" + p, { signal: ctl.signal });
+    render(await r.json());
+  } catch (e) { if (e.name !== "AbortError") $("out").innerHTML = `<p class="empty">Грешка при зареждане.</p>`; }
+}
+
+function syncControls() {
+  document.querySelectorAll("#span button").forEach(b => b.classList.toggle("on", b.dataset.v === S.span));
+  $("q").value = S.q; $("channel").value = S.channel; $("format").value = S.format;
+}
+
+async function init() {
+  META = await (await fetch("/api/meta")).json();
+  $("channel").innerHTML += META.channels.map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join("");
+  $("format").innerHTML += Object.entries(META.formats).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join("");
+  readHash(); syncControls(); load();
+
+  $("span").onclick = e => { if (e.target.dataset.v) { S.span = e.target.dataset.v; syncControls(); load(); } };
+  let t; $("q").oninput = () => { clearTimeout(t); t = setTimeout(() => { S.q = $("q").value.trim(); load(); }, 250); };
+  $("channel").onchange = () => { S.channel = $("channel").value; load(); };
+  $("format").onchange = () => { S.format = $("format").value; load(); };
+  document.body.addEventListener("click", e => {
+    const pl = e.target.closest("[data-play]");
+    if (pl && !e.ctrlKey && !e.metaKey) { e.preventDefault(); openPlayer(ITEMS.get(pl.dataset.play)); return; }
+    const part = e.target.closest("[data-part]");
+    if (part) { playPart(Number(part.dataset.part)); return; }
+    if (e.target.closest("#pl-close") || e.target === $("player")) { closePlayer(); return; }
+    if (e.target.closest("#player [data-topic]")) closePlayer();
+    const c = e.target.closest("[data-cat]");
+    if (c) { S.category = c.dataset.cat; load(); window.scrollTo({ top: 0 }); return; }
+    const tp = e.target.closest("[data-topic]");
+    if (tp) { S.topic = S.topic === tp.dataset.topic ? "" : tp.dataset.topic; load(); window.scrollTo({ top: 0 }); }
+  });
+  $("refresh").onclick = async () => { await fetch("/api/refresh", { method: "POST" }); setTimeout(load, 1500); };
+  setInterval(load, 60_000);
+}
+
+// ---------- in-page player (segments play from start to end)
+let PARTS = [], CUR = null;
+function embed(v) {
+  const p = new URLSearchParams({ autoplay: "1", rel: "0" });
+  if (v.start_s != null) { p.set("start", v.start_s); p.set("end", v.end_s); }
+  $("pl-video").innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(v.id)}?${p}"
+    allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen
+    referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+}
+function fillInfo(v) {
+  CUR = v; embed(v);
+  $("pl-title").textContent = v.title;
+  $("pl-meta").textContent = [v.channel_name, ago(v.published_at),
+    v.start_s != null ? `${clock(v.start_s)}–${clock(v.end_s)}` : (v.duration_s ? dur(v.duration_s) : "")].filter(Boolean).join(" · ");
+  $("pl-guests").textContent = (v.guests || []).join(" · ");
+  $("pl-summary").textContent = v.start_s != null ? v.description : "";
+  $("pl-tags").innerHTML = (v.topics || []).map(t => `<button class="tag" data-topic="${esc(t)}">${esc(t)}</button>`).join("");
+  $("pl-yt").href = ytUrl(v);
+  document.querySelectorAll("#pl-list button").forEach(b => b.classList.toggle("on", PARTS[b.dataset.part]?.start_s === v.start_s));
+}
+async function openPlayer(v) {
+  if (!v) return;
+  PARTS = []; $("pl-parts").hidden = true;
+  fillInfo(v); $("player").showModal();
+  if (v.start_s != null) {
+    const r = await (await fetch(`/api/show/${encodeURIComponent(v.id)}`)).json();
+    PARTS = r.segments.map(s => ({ ...v, ...s, id: s.video_id, description: s.summary,
+                                   duration_s: s.end_s - s.start_s }));
+    $("pl-list").innerHTML = PARTS.map((s, i) =>
+      `<li><button data-part="${i}" class="${s.start_s === v.start_s ? "on" : ""}"><span class="t">${clock(s.start_s)}</span><span>${esc(s.title)}${s.guests.length ? ` <span class="meta">— ${esc(s.guests.map(g => g.split(",")[0]).join(", "))}</span>` : ""}</span></button></li>`).join("");
+    $("pl-parts").hidden = false;
+  }
+}
+function playPart(i) { if (PARTS[i]) fillInfo(PARTS[i]); }
+function closePlayer() { $("pl-video").innerHTML = ""; if ($("player").open) $("player").close(); }
+$("player").addEventListener("close", () => { $("pl-video").innerHTML = ""; });
+init();
+</script>
+</body>
+</html>

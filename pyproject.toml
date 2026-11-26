@@ -1,0 +1,22 @@
+[project]
+name = "news-app"
+version = "0.1.0"
+description = "Add your description here"
+authors = [
+    { name = "Viktor Naychev", email = "viktor.naychev@egt.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "anthropic>=2.14.0",
+    "fastapi>=0.165.0",
+    "httpx>=0.28.1",
+    "uvicorn>=0.54.0",
+    "yt-dlp>=2026.11.23",
+]
+
+[project.scripts]
+news-app = "news_app:main"
+
+[build-system]
+requires = ["uv_build>=0.13.7,<0.14.0"]
+build-backend = "uv_build"

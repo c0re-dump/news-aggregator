@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "news-app",
+      "runtimeExecutable": "uv",
+      "runtimeArgs": ["run", "news-app", "serve", "--port", "8000"],
+      "port": 8000
+    }
+  ]
+}
